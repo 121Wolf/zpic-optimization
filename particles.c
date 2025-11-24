@@ -931,7 +931,7 @@ int ltrim( float x )
  * @param emf       EM fields
  * @param current   Current density
  */
-void spec_advance( t_species* spec, t_emf* emf, t_current* current )
+void spec_advance( t_species* restrict spec, t_emf* restrict emf, t_current* restrict current )
 {  
     uint64_t t0;
     t0 = timer_ticks();
@@ -947,9 +947,10 @@ void spec_advance( t_species* spec, t_emf* emf, t_current* current )
     double energy = 0;
 
     int num_threads = omp_get_max_threads();
-    const int J_size = current->nx + 2; // Need to confirm this!!     
+    // Used printf to find J_size and give it a little wiggle room
+    const int J_size = current->nx + 2;     
 
-    // (2) RESET ARRAYS (clear previous values)
+    // Reset the arrays (clear previous values)
     for (int t = 0; t < num_threads; t++) {
     memset(J_threads[t], 0, J_size * sizeof(float3));
 }   
@@ -960,7 +961,7 @@ void spec_advance( t_species* spec, t_emf* emf, t_current* current )
         int tid = omp_get_thread_num();
         float3* J_local = J_threads[tid];
         
-        #pragma omp for schedule(static,  64) nowait
+        #pragma omp for schedule(static,  256) nowait
         for (int i = 0; i < spec->np; i++) {
 
             float3 Ep, Bp;
@@ -1055,8 +1056,10 @@ void spec_advance( t_species* spec, t_emf* emf, t_current* current )
             spec -> part[i].ix += di;
 
         }
-  } // Reduction Phasei
-    #pragma omp parallel for schedule(static, 256)
+  } // end of parallel zone
+
+    // Reduction Phase
+    //#pragma omp parallel for schedule(static, 256)
     for (int t = 0; t < num_threads; t++) {
        for (int i = 0; i < J_size; i++) {
         current->J[i].x += J_threads[t][i].x;

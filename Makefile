@@ -1,6 +1,6 @@
 # GCC options
 CC = gcc 
-CFLAGS = -Ofast -g -std=c99 -pedantic -Wall -fopenmp -march=native -mtune=native -ffast-math -funroll-loops
+CFLAGS = -Ofast -g -std=c99 -pedantic -Wall -fopenmp -march=native -mtune=native -ffast-math -funroll-loops -ftree-vectorize
 #CFLAGS = -Kfast -std=c99 
 LDFLAGS = -lm
 
